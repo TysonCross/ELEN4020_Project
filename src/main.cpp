@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
 
         output_file << setw(width) << left << N;
         if (verbose) { printf("\nN = %d: \n", N);}
-        auto num_of_functions = vector_of_transpose_functions.size();
+        int num_of_functions = vector_of_transpose_functions.size();
 
         for(auto i = 0; i < num_of_functions; i++){
             if (verbose){printf("Timing algorithm %d/%d... \n", i+1, num_of_functions);}
