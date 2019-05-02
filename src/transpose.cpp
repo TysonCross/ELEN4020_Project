@@ -9,6 +9,17 @@ struct matrix_args{
          int row_end;
 };
 
+void transposeMatrixSerial(Matrix A)
+{
+    auto N = A.size();
+    for (auto i = 0; i < N; i++) {
+        for (auto j = 0; j < i; j++) {
+            if (i!=j) {
+                A.swap(i, j);
+            }
+        }
+    }
+}
 
 void transposeMatrixBlockOpenMP(Matrix A)
 {
