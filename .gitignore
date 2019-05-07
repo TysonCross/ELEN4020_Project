@@ -290,3 +290,5 @@ dmypy.json
 data\.txt
 
 timings\.txt
+
+\.idea/
