@@ -4,11 +4,10 @@
 using namespace std;
 int main(int argc, char *argv[])
 {
-    // setup UPC++ runtime
+// setup UPC++ runtime
     upcxx::init();
-    cout << "Hello world from process " << upcxx::rank_me()
-    5
-            << " out of " << upcxx::rank_n() << " processes" << endl; // close down UPC++ runtime
+    // upcxx::rank_me() - get number for this rank
+    cout << "Hello world from rank " << upcxx::rank_me() << endl; // close down UPC++ runtime
     upcxx::finalize();
     return 0;
 }
