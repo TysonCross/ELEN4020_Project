@@ -23,5 +23,13 @@ if (OPENMP_FOUND)
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
+find_package(Threads REQUIRED)
+if(THREADS_HAVE_PTHREAD_ARG)
+target_compile_options(${EXECUTABLE} PUBLIC "-pthread")
+endif()
+if(CMAKE_THREAD_LIBS_INIT)
+target_link_libraries(${EXECUTABLE} "${CMAKE_THREAD_LIBS_INIT}")
+endif()
+
 add_executable(${EXECUTABLE} ${SOURCE})
 
