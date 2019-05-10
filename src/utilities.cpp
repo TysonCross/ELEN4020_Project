@@ -26,13 +26,13 @@ void writeMatrixToFile(string fileName, Matrix A)
         cout << "Unable to open file:" << fileName << endl;
     }
     const auto N = A.size();
-    outputFile << N << endl;
+    outputFile << N << " ";
     for (auto i = 0; i < N; i++){
         for (auto j = 0; j < N; j++){
-            outputFile << A.at(i, j) << "\t";
+            outputFile << A.at(i, j) << " ";
         }
-        outputFile << endl;
-        }
+        // outputFile << endl;
+    }
     outputFile.close();
 }
 

@@ -53,17 +53,20 @@ int main(int argc, char* argv[])
         sizes.clear();
         sizes = {64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768};
     }
-
+    sizes = {4};
     for (auto& N : sizes)
     {
         // N must be a power of two
         assert(isPowerOfTwo(N));                                        
         Matrix A(N);
         A.randomizeValues();
+        print2d(A);
         string validationFile = "data.txt";
         writeMatrixToFile(validationFile, A);
+        std::cout<<std::endl;
         Matrix B(N);
         B = readMatrixfromFile(validationFile);
+        print2d(B);
 
         output_file << setw(width) << left << N;
         if (verbose) { printf("\nN = %d: \n", N);}
@@ -85,11 +88,11 @@ int main(int argc, char* argv[])
 
 	output_file.close();
     
-    cout << endl;
+    std::cout << endl;
     if (verbose) {
-	    cout << "Executable Runtime: " << double(clock() - start_time) / (double)CLOCKS_PER_SEC;
-        cout << " seconds" << endl;
+	    std::cout << "Executable Runtime: " << double(clock() - start_time) / (double)CLOCKS_PER_SEC;
+        std::cout << " seconds" << std::endl;
     }
-	cout << "Timing complete: to view run 'cat timings.txt'" << endl;
+	std::cout << "Timing complete: to view run 'cat timings.txt'" << std::endl;
 
 }
