@@ -286,6 +286,8 @@ dmypy.json
 .history
 
 # End of https://www.gitignore.io/api/git,c++,cmake,clion,python,visualstudiocode
+*.dSYM
+*.dSYM/*
 
 data\.txt
 
