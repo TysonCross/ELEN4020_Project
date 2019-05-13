@@ -21,6 +21,10 @@ bool isPowerOfTwo(uint32_t x);
 /// \param The matrix to print
 void print2d(Matrix A);
 
+/// \brief Prints the matrix as an array
+/// \param The matrix to print
+void print1d(Matrix A);
+
 /// \brief Caches a matrix to disk
 /// \param Path to the cache file to write (replaces contents)
 /// \param The matrix to cache to disk

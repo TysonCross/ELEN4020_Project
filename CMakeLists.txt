@@ -6,22 +6,20 @@ set(CMAKE_BUILD_TYPE "Debug")
 set(CXX_COMPILER /usr/local/Cellar/mpich/3.3_1/bin/mpicc)
 set(C_COMPILER /usr/local/Cellar/mpich/3.3_1/bin/mpi)
 
-
 set (CMAKE_CXX_FLAGS "-v")
 set (CMAKE_CXX_FLAGS "-fopenmp")
 
+set(INCLUDE src/Matrix.h)
 
-#set(INCLUDE src/Matrix.h)
-#
-#set(SOURCE  src/utilities.cpp
-#            src/transpose.cpp
-#            src/main.cpp)
+set(SOURCE  src/utilities.cpp
+            src/transpose.cpp
+            src/main.cpp)
 
-set(SOURCE_test  src/test_mpi.cpp)
+set(SOURCE_test  src/test_mpi2.cpp)
 
 set(EXECUTABLE ${PROJECT_NAME})
-#add_executable(${EXECUTABLE} ${INCLUDE} ${SOURCE} )
-add_executable(${EXECUTABLE} ${SOURCE_test})
+add_executable(${EXECUTABLE} ${INCLUDE} ${SOURCE} )
+add_executable(test ${SOURCE_test})
 
 find_package(MPI REQUIRED)
     include_directories(${MPI_C_INCLUDE_PATH})

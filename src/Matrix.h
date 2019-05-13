@@ -24,7 +24,7 @@ public:
     Matrix(int N) : width(N),
                     array(new uint32_t[N * N]) {}
 
-    /// \brief at The getter method, with 2d indexing of elements
+    /// \brief The getter method, with 2d indexing of elements
     /// \param The row index
     /// \param The column index
     int at(int x, int y)
@@ -38,7 +38,7 @@ public:
         return width;
     }
 
-    /// \brief set The setter method, with 2d indexing of elements
+    /// \brief The setter method, with 2d indexing of elements
     /// \param The row index
     /// \param The column index
     /// \param An unsigned 32-bit integer value inserted into the element
@@ -47,18 +47,17 @@ public:
         array[_index(x, y)] = val;
     }
 
-    /// \brief randomizeValues Sets each element in the matrix to
+    /// \brief Sets each element in the matrix to
     /// a random 32-bit integer between 0 and the 'size' value
-    void randomizeValues()
-    {   
-        const int max = 100;
+    void randomizeValues(const int max = 100)
+    {
         srand (static_cast<unsigned int>(time(NULL)));
         for(size_t i = 0; i < width*width; i++){
             this->array[i] = rand() % max;
         }
     }
 
-    /// \brief swap Provides a standard in-place swap method, using
+    /// \brief Provides a standard in-place swap method, using
     /// a temporary value to swap the values at the indices in memory.
     /// When complete, A[x][y] <=> A[y][x]
     /// \param The row index
@@ -70,13 +69,22 @@ public:
         this->set(y, x, temp);
     }
 
+    /// \brief Array-style indexing
+    /// \param The index (or a row-major ordered 2d Matrix as a row vector)
+    uint32_t &operator[](int i) {
+        if( i > width*width ) {
+            throw "Index out of bounds";
+        }
+        return array[i];
+    }
+
 protected:
-    /// \brief _index Method of indexing the 1D array as a 2D matrix
+    /// \brief Method of indexing the 1D array as a 2D matrix
     /// \param The row index
     /// \param The column index
     int _index(int x, int y) const
     {
-        return x + width * y; 
+        return x * width + y;
     } 
 };
 

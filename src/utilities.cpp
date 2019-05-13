@@ -19,6 +19,14 @@ void print2d(Matrix A){
     }
 }
 
+void print1d(Matrix A){
+    const auto N = A.size();
+    cout << N*N << " elements" << endl;
+    for (auto i = 0; i < N*N; i++){
+        cout << A[i] << "\t";
+    }
+}
+
 void writeMatrixToFile(string fileName, Matrix A)
 {
     ofstream outputFile(fileName, ios::out | ios::trunc);

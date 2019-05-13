@@ -61,6 +61,9 @@ int main(int argc, char* argv[])
         Matrix A(N);
         A.randomizeValues();
         print2d(A);
+        cout << endl;
+        print1d(A);
+        cout << endl;
         string validationFile = "data.txt";
         writeMatrixToFile(validationFile, A);
         std::cout<<std::endl;
