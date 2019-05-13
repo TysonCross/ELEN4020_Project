@@ -15,7 +15,7 @@ set(SOURCE  src/utilities.cpp
             src/transpose.cpp
             src/main.cpp)
 
-set(SOURCE_test  src/test_mpi2.cpp)
+set(SOURCE_test  src/test.cpp)
 
 set(EXECUTABLE ${PROJECT_NAME})
 add_executable(${EXECUTABLE} ${INCLUDE} ${SOURCE} )
