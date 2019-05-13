@@ -48,26 +48,27 @@ int main(int argc, char* argv[])
 
     // Matrices to use for timing
     // (N must be a power of two, and larger than the number of threads in OMP_NUM_THREADS)
-    vector<int> sizes = {128, 1024, 2048, 4096};
+
+    vector<int> sizes =  {(2<<3),2<<4,2<<5,2<<6,2<<7};//{128, 1024, 2048, 4096};
     if (long_timing){
         sizes.clear();
         sizes = {64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768};
     }
-    sizes = {4};
+//    sizes = {4};
     for (auto& N : sizes)
     {
         // N must be a power of two
         assert(isPowerOfTwo(N));                                        
         Matrix A(N);
         A.randomizeValues();
+        cout << "Before Transpose" << endl;
         print2d(A);
-        cout << endl;
         string validationFile = "data.txt";
         writeMatrixToFile(validationFile, A);
         std::cout<<std::endl;
         Matrix B(N);
         B = readMatrixfromFile(validationFile);
-        print2d(B);
+//        print2d(B);
 
         output_file << setw(width) << left << N;
         if (verbose) { printf("\nN = %d: \n", N);}
@@ -79,6 +80,9 @@ int main(int argc, char* argv[])
             vector_of_transpose_functions[i](A);                            // perform the algorithm
             steady_clock::time_point t2 = steady_clock::now();
             auto time_taken = duration_cast<duration<double>>(t2 - t1);     // record the time delta
+            cout << "After Transpose" << endl;
+            print2d(A);
+            std::cout<<std::endl;
             transposeMatrixSerial(A);                                       // restore the original matrix
             assert(matricesAreEqual(A, B));                                 // confirm the algorithm works
             output_file << setw(width) << left << setprecision(7) << fixed << time_taken.count();
