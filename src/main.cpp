@@ -49,18 +49,22 @@ int main(int argc, char* argv[])
     // Matrices to use for timing
     // (N must be a power of two, and larger than the number of threads in OMP_NUM_THREADS)
 
-    vector<int> sizes =  {(2<<3),2<<4,2<<5,2<<6,2<<7};//{128, 1024, 2048, 4096};
+    vector<int> sizes =  {2<<6, 2<<9, 2<<10, 2<<11}; // {128, 1024, 2048, 4096};
     if (long_timing){
         sizes.clear();
         sizes = {64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768};
     }
-//    sizes = {4};
+
+sizes = {2<<2};
+
     for (auto& N : sizes)
     {
         // N must be a power of two
         assert(isPowerOfTwo(N));                                        
         Matrix A(N);
-        A.randomizeValues();
+//        A.randomizeValues();
+        A.orderedValues();
+        cout << sizeof(A) << endl;
         cout << "Before Transpose" << endl;
         print2d(A);
         string validationFile = "data.txt";

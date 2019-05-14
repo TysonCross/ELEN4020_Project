@@ -4,7 +4,7 @@
 /// \file
 /// \brief Matrix class for 1D aray representation as a 2D array
 
-#include <memory>
+#include <array>
 
 /// \brief   Matrix class for a contiguous memory block
 ///
@@ -54,6 +54,15 @@ public:
         srand (static_cast<unsigned int>(time(NULL)));
         for(size_t i = 0; i < width*width; i++){
             this->array[i] = rand() % max;
+        }
+    }
+
+    /// \brief Sets each element in the matrix to
+    /// its index (as a 32-bit integer)
+    void orderedValues()
+    {
+        for(size_t i = 0; i < width*width; i++){
+            this->array[i] = i;
         }
     }
 

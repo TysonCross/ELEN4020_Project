@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+for filename in src/*.*; do
+    scp "$filename" swbsutg08@jaguar1.eie.wits.ac.za:"$filename"
+done
+

@@ -8,7 +8,7 @@ set(CMAKE_BUILD_TYPE "Debug")
 set(CXX_COMPILER /usr/local/Cellar/mpich/3.3_1/bin/mpicc)
 #set(C_COMPILER /usr/local/Cellar/mpich/3.3_1/bin/mpi)
 
-set (CMAKE_CXX_FLAGS "-v")
+#set (CMAKE_CXX_FLAGS "-v")
 #set (CMAKE_CXX_FLAGS "-fopenmp")
 
 set(SOURCE  src/Matrix.h
@@ -18,12 +18,14 @@ set(SOURCE  src/Matrix.h
 
 set(SOURCE_test src/hello.cpp)
 
-set(SOURCE_mpi src/mpi_tranpose.cpp)
+set(SOURCE_mpi  src/Matrix.h
+                src/transpose_mpi.cpp
+                src/utilities.cpp)
 
 
 add_executable(${EXECUTABLE} ${INCLUDE} ${SOURCE} )
 add_executable(hello ${SOURCE_test})
-add_executable(mpi_transpose ${SOURCE_test})
+add_executable(mpi_transpose ${SOURCE_mpi})
 
 
 find_package(MPI REQUIRED)
