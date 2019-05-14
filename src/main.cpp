@@ -50,7 +50,8 @@ int main (int argc, char* argv[]) {
     uint32_t *globalptr = NULL;
     if (rank == 0) globalptr = global.begin();
 
-    /* scatter the array to all processors */
+    // MPI_Scatter the array to all processors
+    // ToDo: Create an alternate 'displaces' for sending and receiving
     int sendcounts[block*block];
     int displaces[block*block];
 
@@ -59,6 +60,8 @@ int main (int argc, char* argv[]) {
         for (int i=0; i<block*block; i++) {
             sendcounts[i] = 1;
         }
+        // TODO: Need to change the code to perform transposition of rank 1 and 2 here,
+        //  by setting up alternate 'displaces' variables
         for (int i=0; i<block; i++) {
             for (int j=0; j<block; j++) {
                 displaces[i*block+j] = offset;
@@ -68,14 +71,16 @@ int main (int argc, char* argv[]) {
         }
     }
 
+    // ToDo: Use an alternate 'displaces' for sending and receiving
     MPI_Scatterv(globalptr, sendcounts, displaces, MPI_SubMatrix, &(local[0]),
                  N*N/(block*block), MPI_UINT32_T,
                  0, MPI_COMM_WORLD);
 
-    // Print local data
+    // Print local data before transposition
+    // ToDo: Remove after debugging
     for (int p=0; p<size; p++) {
         if (rank == p) {
-            printf("Local process on rank %d is:\n", rank);
+            printf("\n Local process (before transposing) on rank %d is:\n", rank);
             print2d(local);
         }
         MPI_Barrier(MPI_COMM_WORLD);
@@ -83,11 +88,16 @@ int main (int argc, char* argv[]) {
 
     //  Process local data
     transposeMatrixBlockOpenMP(local);
-//    for (int i=0; i<N/block; i++) {
-//        for (int j=0; j<N/block; j++) {
-//            local.set(i, j, rank);
-//        }
-//    }
+
+    // Print local data after transposition
+    // ToDo: Remove after debugging
+    for (int p=0; p<size; p++) {
+        if (rank == p) {
+            printf("\n Local process (after transposing) on rank %d is:\n", rank);
+            print2d(local);
+        }
+        MPI_Barrier(MPI_COMM_WORLD);
+    }
 
     // Send back to rank 0
     MPI_Gatherv(local.begin(), N*N/(block*block),  MPI_INT,
@@ -97,11 +107,12 @@ int main (int argc, char* argv[]) {
     MPI_Type_free(&MPI_SubMatrix);
 
     if (rank == 0) {
-        printf("Processed matrix:\n");
+        // ToDo: Perform transposition check here.
+        // ToDo: write out matrix to file.
+        // ToDo: Timing code write to file
+        printf("\nTransposed matrix:\n");
         print2d(global);
     }
-
-//    MPI_Type_vector(rows, 1, cols, MPI_INT, &col);
 
     MPI_Finalize();
     return 0;
