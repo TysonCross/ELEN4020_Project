@@ -24,6 +24,12 @@ public:
     Matrix(int N) : width(N),
                     array(new uint32_t[N * N]) {}
 
+    /// \brief Returns the memory address of the array
+    uint32_t* begin()
+    {
+        return &array[0];
+    }
+
     /// \brief The getter method, with 2d indexing of elements
     /// \param The row index
     /// \param The column index

@@ -40,12 +40,12 @@ int main (int argc, char* argv[]) {
     const int starts[2] = {0,0};
 
     // Create the types
-    MPI_Type_create_subarray(2, sizes, subsizes, starts, MPI_ORDER_C, MPI_INT, &MPI_Matrix);
+    MPI_Type_create_subarray(2, sizes, subsizes, starts, MPI_ORDER_C, MPI_UINT32_T, &MPI_Matrix);
     MPI_Type_create_resized(MPI_Matrix, 0, N/block*sizeof(uint32_t) , &MPI_SubMatrix);
     MPI_Type_commit(&MPI_SubMatrix);
 
     uint32_t *globalptr = NULL;
-    if (rank == 0) globalptr = &(global[0]);
+    if (rank == 0) globalptr = global.begin();
 
     /* scatter the array to all processors */
     int sendcounts[block*block];
@@ -66,7 +66,7 @@ int main (int argc, char* argv[]) {
     }
 
     MPI_Scatterv(globalptr, sendcounts, displaces, MPI_SubMatrix, &(local[0]),
-                 N*N/(block*block), MPI_CHAR,
+                 N*N/(block*block), MPI_UINT32_T,
                  0, MPI_COMM_WORLD);
 
     // Print local data
@@ -86,7 +86,7 @@ int main (int argc, char* argv[]) {
     }
 
     // Send back to rank 0
-    MPI_Gatherv(&(local[0]), N*N/(block*block),  MPI_INT,
+    MPI_Gatherv(local.begin(), N*N/(block*block),  MPI_INT,
                 globalptr, sendcounts, displaces, MPI_SubMatrix,
                 0, MPI_COMM_WORLD);
 
@@ -98,19 +98,6 @@ int main (int argc, char* argv[]) {
     }
 
 //    MPI_Type_vector(rows, 1, cols, MPI_INT, &col);
-//    MPI_Type_hvector(cols, 1, sizeof(int), col, &transpose);
-//    MPI_Type_commit(&transpose);
-//
-//    MPI_Isend(&(send[0][0]), rows*cols, MPI_INT, 0, 1, MPI_COMM_WORLD,&req);
-//    MPI_Recv(&(recv[0][0]), 1, transpose, 0, 1, MPI_COMM_WORLD, &status);
-//
-//    MPI_Type_free(&col);
-//    MPI_Type_free(&transpose);
-
-//    printf("Original:\n");
-//    printarr(send,rows,cols);
-//    printf("Received\n");
-//    printarr(recv,rows,cols);
 
     MPI_Finalize();
     return 0;
