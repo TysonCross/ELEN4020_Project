@@ -11,23 +11,21 @@ set(CXX_COMPILER /usr/local/Cellar/mpich/3.3_1/bin/mpicc)
 #set (CMAKE_CXX_FLAGS "-v")
 #set (CMAKE_CXX_FLAGS "-fopenmp")
 
-set(SOURCE  src/Matrix.h
-            src/utilities.cpp
-            src/transpose.cpp
-            src/main.cpp)
-
 set(SOURCE_test src/hello.cpp)
 
-set(SOURCE_mpi  src/Matrix.h
+set(SOURCE_lab2 src/lab2.cpp
+                src/Matrix.h
                 src/transpose.cpp
-                src/transpose_mpi.cpp
                 src/utilities.cpp)
 
+set(SOURCE      src/main.cpp
+                src/Matrix.h
+                src/transpose.cpp
+                src/utilities.cpp)
 
-add_executable(${EXECUTABLE} ${INCLUDE} ${SOURCE} )
+add_executable(${EXECUTABLE} ${SOURCE} )
 add_executable(hello ${SOURCE_test})
-add_executable(mpi_transpose ${SOURCE_mpi})
-
+add_executable(lab2 ${SOURCE_lab2})
 
 find_package(MPI REQUIRED)
 if (MPI_FOUND)

@@ -1,107 +1,109 @@
-/// \file
-/// \brief Main file for comparing time performance of in-place matrix transposition algorithms
-
-#include <chrono>
+#include <stdio.h>
 #include <assert.h>
-#include <functional>
+#include <mpi.h>
+#include "Matrix.h"
 #include "utilities.h"
 #include "transpose.h"
-#include "Matrix.h"
 
-using namespace std;
-using namespace std::chrono;
+int main (int argc, char* argv[]) {
+    int N = 8;
+    int procs = 4;
+    int block = procs/2;
 
-int main(int argc, char* argv[])
-{
-    auto verbose = false;
-    auto long_timing = false;
-    if (argc > 1) {
-        for(auto i = 0; i < argc; i++){
-            if (string(argv[i]) == "-v" || string(argv[i]) == "--verbose") {
-                verbose = true;
+    assert(isPowerOfTwo(N));
+    assert(N>4);
+    Matrix global(N);       // global matrix
+
+    int rank, size;         // rank of current process and no. of processes
+
+    MPI_Init(&argc, &argv);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+    if (size != procs) {
+        fprintf(stderr,"%s only works with np=%d\n", argv[0], procs);
+        MPI_Abort(MPI_COMM_WORLD,1);
+    }
+
+    if (rank == 0) {
+//        global.randomizeValues();
+        global.orderedValues();     // <- The main [NxN] matrix in global memory, but only written to rank 0
+        print2d(global);
+    }
+
+    // Create local sub-matrix
+    Matrix local(N/block);         // <- each rank has a local [N/2 x N/2] submatrix, for a quadrant of the main matrix
+
+    // Create a new MPI type (a 2d array)
+    MPI_Datatype MPI_Matrix, MPI_SubMatrix;
+    const int sizes[2] = {N,N};
+    const int subsizes[2] = {N/block, N/block};
+    const int starts[2] = {0,0};
+
+    // Create the types (the main 2d MPI_matrix, and the quadrant sub-matrix type, derived from MPI_UINT21_T
+    // The ordering is using MPI_ORDER_C, which is row-major on a contiguous block of memory,
+    // This matches the Matrix.h memory layout.
+    MPI_Type_create_subarray(2, sizes, subsizes, starts, MPI_ORDER_C, MPI_UINT32_T, &MPI_Matrix);
+    MPI_Type_create_resized(MPI_Matrix, 0, N/block*sizeof(uint32_t) , &MPI_SubMatrix);
+    MPI_Type_commit(&MPI_SubMatrix);
+
+    uint32_t *globalptr = NULL;
+    if (rank == 0) globalptr = global.begin();
+
+    /* scatter the array to all processors */
+    int sendcounts[block*block];
+    int displaces[block*block];
+
+    if (rank == 0) {
+        int offset = 0;
+        for (int i=0; i<block*block; i++) {
+            sendcounts[i] = 1;
+        }
+        for (int i=0; i<block; i++) {
+            for (int j=0; j<block; j++) {
+                displaces[i*block+j] = offset;
+                offset += 1;
             }
-            if (string(argv[i]) == "-l" || string(argv[i]) == "--long") {
-                long_timing = true;
-            }
+            offset += ((N/block)-1)*block;
         }
     }
-    if (verbose) {printf("Maximum threads: %d\n", getNumThreadsEnvVar() );}
-    printf("Timing algorithms...\n");
 
-    // Overall system time elapsed
-	clock_t start_time = clock();
+    MPI_Scatterv(globalptr, sendcounts, displaces, MPI_SubMatrix, &(local[0]),
+                 N*N/(block*block), MPI_UINT32_T,
+                 0, MPI_COMM_WORLD);
 
-    // Output setup
-	string fileOutName = "timings.txt";
-	ofstream output_file(fileOutName, ios::out | ios::trunc);
-	if (!output_file.is_open()) { cerr << "Unable to open file:" << fileOutName << endl; return -1;}
-
-    // Output column titles
-	auto width = 20;
-	output_file << setw(width) << left << "#N0=N1";
-	output_file << setw(width) << left << "OpenMP:Block";
-	output_file << endl;
-    
-    // MT algorithms to time:
-    vector<function<void (Matrix)>> vector_of_transpose_functions;     // vector of pointers to functions
-    vector_of_transpose_functions.push_back(transposeMatrixBlockOpenMP);
-
-    // Matrices to use for timing
-    // (N must be a power of two, and larger than the number of threads in OMP_NUM_THREADS)
-
-    vector<int> sizes =  {2<<6, 2<<9, 2<<10, 2<<11}; // {128, 1024, 2048, 4096};
-    if (long_timing){
-        sizes.clear();
-        sizes = {64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768};
-    }
-
-sizes = {2<<2};
-
-    for (auto& N : sizes)
-    {
-        // N must be a power of two
-        assert(isPowerOfTwo(N));                                        
-        Matrix A(N);
-//        A.randomizeValues();
-        A.orderedValues();
-        cout << sizeof(A) << endl;
-        cout << "Before Transpose" << endl;
-        print2d(A);
-        string validationFile = "data.txt";
-        writeMatrixToFile(validationFile, A);
-        std::cout<<std::endl;
-        Matrix B(N);
-        B = readMatrixfromFile(validationFile);
-//        print2d(B);
-
-        output_file << setw(width) << left << N;
-        if (verbose) { printf("\nN = %d: \n", N);}
-        int num_of_functions = vector_of_transpose_functions.size();
-
-        for(auto i = 0; i < num_of_functions; i++){
-            if (verbose){printf("Timing algorithm %d/%d... \n", i+1, num_of_functions);}
-            steady_clock::time_point t1 = steady_clock::now();
-            vector_of_transpose_functions[i](A);                            // perform the algorithm
-            steady_clock::time_point t2 = steady_clock::now();
-            auto time_taken = duration_cast<duration<double>>(t2 - t1);     // record the time delta
-            cout << "After Transpose" << endl;
-            print2d(A);
-            std::cout<<std::endl;
-            transposeMatrixSerial(A);                                       // restore the original matrix
-            assert(matricesAreEqual(A, B));                                 // confirm the algorithm works
-            output_file << setw(width) << left << setprecision(7) << fixed << time_taken.count();
-            
+    // Print local data
+    for (int p=0; p<size; p++) {
+        if (rank == p) {
+            printf("Local process on rank %d is:\n", rank);
+            print2d(local);
         }
-        output_file << endl;
+        MPI_Barrier(MPI_COMM_WORLD);
     }
 
-	output_file.close();
-    
-    std::cout << endl;
-    if (verbose) {
-	    std::cout << "Executable Runtime: " << double(clock() - start_time) / (double)CLOCKS_PER_SEC;
-        std::cout << " seconds" << std::endl;
-    }
-	std::cout << "Timing complete: to view run 'cat timings.txt'" << std::endl;
+    //  Process local data
+    transposeMatrixBlockOpenMP(local);
+//    for (int i=0; i<N/block; i++) {
+//        for (int j=0; j<N/block; j++) {
+//            local.set(i, j, rank);
+//        }
+//    }
 
+    // Send back to rank 0
+    MPI_Gatherv(local.begin(), N*N/(block*block),  MPI_INT,
+                globalptr, sendcounts, displaces, MPI_SubMatrix,
+                0, MPI_COMM_WORLD);
+
+    MPI_Type_free(&MPI_SubMatrix);
+
+    if (rank == 0) {
+        printf("Processed matrix:\n");
+        print2d(global);
+    }
+
+//    MPI_Type_vector(rows, 1, cols, MPI_INT, &col);
+
+    MPI_Finalize();
+    return 0;
 }
+
