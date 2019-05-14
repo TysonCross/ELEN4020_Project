@@ -17,6 +17,7 @@ void print2d(Matrix A){
         }
         cout << endl;
     }
+    cout << endl;
 }
 
 void print1d(Matrix A){

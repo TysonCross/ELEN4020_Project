@@ -19,6 +19,7 @@ set(SOURCE  src/Matrix.h
 set(SOURCE_test src/hello.cpp)
 
 set(SOURCE_mpi  src/Matrix.h
+                src/transpose.cpp
                 src/transpose_mpi.cpp
                 src/utilities.cpp)
 

@@ -3,6 +3,7 @@
 #include <mpi.h>
 #include "Matrix.h"
 #include "utilities.h"
+#include "transpose.h"
 
 int main (int argc, char* argv[]) {
     int N = 8;
@@ -79,11 +80,12 @@ int main (int argc, char* argv[]) {
     }
 
     //  Process local data
-    for (int i=0; i<N/block; i++) {
-        for (int j=0; j<N/block; j++) {
-            local.set(i, j, rank);
-        }
-    }
+    transposeMatrixBlockOpenMP(local);
+//    for (int i=0; i<N/block; i++) {
+//        for (int j=0; j<N/block; j++) {
+//            local.set(i, j, rank);
+//        }
+//    }
 
     // Send back to rank 0
     MPI_Gatherv(local.begin(), N*N/(block*block),  MPI_INT,
