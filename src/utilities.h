@@ -8,6 +8,9 @@
 #include <stdio.h>
 #include <fstream>
 #include <vector>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <string>
 #include "Matrix.h"
 
 using namespace std;

@@ -1,5 +1,4 @@
 #include "utilities.h"
-#include "Matrix.h"
 /// \file
 /// \brief Various output/validation methods for confirming transposition (Implementation)
 

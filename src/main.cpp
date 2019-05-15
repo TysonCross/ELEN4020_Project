@@ -9,6 +9,7 @@
 
 int main (int argc, char* argv[]) {
 
+    // Get N from the commandline
     if (argc < 2) {
         cerr << "Usage: " << argv[0] << "<N> (power of 2 greater than 4)" << endl;
         return -1;
@@ -40,23 +41,18 @@ int main (int argc, char* argv[]) {
         cerr << "Number out of range: " << arg << '\n';
     }
 
-    // Output setup
-    string fileOutName = string("matrixFile_") + to_string(N) + "_timing.txt";
-    ofstream output_file(fileOutName, ios::out | ios::trunc);
+    // Output timing file setup
+    const string fileOutName = string("matrixFile_") + to_string(N) + "_timing.txt";
+    ofstream output_file(fileOutName, ios::out | ios::app);
     if (!output_file.is_open()) { cerr << "Unable to open file:" << fileOutName << endl; return -1;}
-
-    // Output column titles
-    auto width = 20;
-    output_file << setw(width) << left << "#N0=N1";
-    output_file << setw(width) << left << "TransposeMPI";
-    output_file << endl;
+    const auto width = 20;  // File formatting
 
     // MPI number of processors setup
-    int procs = 4;
-    int block = procs/2;
+    const int procs = 4;
+    const int block = procs/2;
     double t1, t2;
 
-
+    // Setup matrices
     Matrix global(N);       // global matrix
     Matrix validation(N);   // validation of transpose
 
@@ -72,23 +68,21 @@ int main (int argc, char* argv[]) {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
-    if (rank == 0)
-    {
-//        global.orderedValues();
+    if (rank == 0) {
+        // global.orderedValues();
         global.randomizeValues();   // <- The main [NxN] matrix in global memory, but only written to rank 0
-        string matrixfile_in = string("matrixFile_") + to_string(N) + "_in.txt";
+        string matrixfile_in = string("matrixFile_") + to_string(N) + ".txt";
         writeMatrixToFile(matrixfile_in, global);
 
         // read the matrix in for later validation:
         validation = readMatrixfromFile(matrixfile_in);
 
         // Shell output
-        printf("Performing timing of transposition of %dx%d matrix across %d processors\n", N, N, procs);
-        cout << "Matrix written to " <<  matrixfile_in << endl;
-
+        cout << N << "x" << N << " matrix written to " <<  matrixfile_in << endl;
+        cout << "Transposing matrix across " << procs << " processors..." << endl;
         // Timings file headings:
         output_file << setw(width) << left << N;
-        t1 = MPI_Wtime();
+        t1 = MPI_Wtime();       // Start timing operation from here
     }
 
     // Create local sub-matrix
@@ -116,15 +110,13 @@ int main (int argc, char* argv[]) {
     int displaces_send[block * block];
     int displaces_receive[block * block];
 
-    if (rank == 0)
-    {
+    // Setup the offsets in memory to send to local
+    if (rank == 0) {
         int offset = 0;
         for (int i = 0; i < block * block; i++)
         {
             sendcounts[i] = 1;
         }
-
-        // Setup the offsets in memory to send to local
         for (int i = 0; i < block; i++)
         {
             for (int j = 0; j < block; j++)
@@ -140,13 +132,7 @@ int main (int argc, char* argv[]) {
         displaces_receive[1] = displaces_send[2];
         displaces_receive[2] = displaces_send[1];
         displaces_receive[3] = displaces_send[3];
-//        for (int i = 0; i < block * block; ++i)
-//        {
-//            cout << displaces_send[i] << " " << displaces_receive[i] << endl;
-//        }
     }
-
-//    MPI_Barrier(MPI_COMM_WORLD);
 
     // Retrieve transposed sub-matrices
     MPI_Scatterv(globalptr, sendcounts, displaces_send, MPI_SubMatrix, &(local[0]),
@@ -156,20 +142,12 @@ int main (int argc, char* argv[]) {
     //  Process local data
     transposeMatrixBlockOpenMP(local);
 
-//        // Print local data after transposition
-//        for (int p=0; p<size; p++) {
-//            if (rank == p) {
-//                printf("\n Local process (after transposing) on rank %d is:\n", rank);
-//                print2d(local);
-//            }
-//            MPI_Barrier(MPI_COMM_WORLD);
-//        }
-
     // Send back to rank 0
     MPI_Gatherv(local.begin(), N * N / (block * block), MPI_INT,
                 globalptr, sendcounts, displaces_receive, MPI_SubMatrix,
                 0, MPI_COMM_WORLD);
 
+    // Free the derived type
     MPI_Type_free(&MPI_SubMatrix);
 
     if (rank == 0)
@@ -182,25 +160,28 @@ int main (int argc, char* argv[]) {
         try{
             if(!matricesAreEqual(global, validation)){
                 throw N;
+            } else {
+                cout << "Transposition complete. Operation took " << time_taken << " sec" << endl;
             }
         } catch (int i){
-            cerr << "Matrix of size " << i << " was not correctly transposed. Aborting." << endl;
-            MPI_Finalize();
+            cerr << "Error: Matrix of size " << i << " was not correctly transposed. Aborting." << endl;
+            output_file.close();
+            remove(fileOutName.c_str());
+            MPI_Abort(MPI_COMM_WORLD, 1);
             return i;
         }
 
-        cout << "Transposition finished in " << time_taken << " sec" << endl;
         output_file << setw(width) << left << setprecision(7) << fixed << time_taken << endl;
 
         // Write transposed Matrix to file
-        string matrixfile_out = string("matrixFile_") + to_string(N) + "_out.txt";
-        writeMatrixToFile(matrixfile_out, global);
-        cout << "Output transposed matrix written to " <<  matrixfile_out << endl;
+        string matrixfile_transpose = string("matrixFile_") + to_string(N) + "transpose.txt";
+        writeMatrixToFile(matrixfile_transpose, global);
+        cout << "Transposed matrix written to " <<  matrixfile_transpose << endl;
     }
 
     // clean up
-    MPI_Finalize();
     output_file.close();
+    MPI_Finalize();
     return 0;
 }
 
