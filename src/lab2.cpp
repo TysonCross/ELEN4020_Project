@@ -62,8 +62,8 @@ sizes = {2<<2};
         // N must be a power of two
         assert(isPowerOfTwo(N));                                        
         Matrix A(N);
-//        A.randomizeValues();
-        A.orderedValues();
+        A.randomizeValues();
+//        A.orderedValues();
         cout << sizeof(A) << endl;
         cout << "Before Transpose" << endl;
         print2d(A);
