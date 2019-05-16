@@ -63,9 +63,10 @@ public:
 
     /// \brief Sets each element in the matrix to
     /// a random 32-bit integer between 0 and 99
-    void randomizeValues(const int max = 100)
+    void randomizeValues(int seed = static_cast<unsigned int>(time(NULL)))
     {
-        srand (static_cast<unsigned int>(time(NULL)));
+        const int max = 100;
+        srand(seed+static_cast<unsigned int>(time(NULL)));
         for(size_t i = 0; i < width*width; i++){
             this->array[i] = rand() % max;
         }
