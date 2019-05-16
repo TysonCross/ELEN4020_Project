@@ -10,7 +10,8 @@ set(fig1,'numbertitle','off',...                            % Give figure useful
         'name','Lab 2',...
         'Color','white');
 fontName='CMU Serif';
-fontSize = 28;
+fontSize = 22;
+fontSize_Large =28;
 set(0,'defaultAxesFontName', fontName);                     % Make fonts pretty
 set(0,'defaultTextFontName', fontName);
 set(0,'DefaultAxesColor','none');                           % Transparent background
@@ -80,10 +81,10 @@ xticks([x']);
 hold on
 ylabel('Time [{\mu}s] \rightarrow',...
     'FontName',fontName,...
-    'FontSize',fontSize);
+    'FontSize',fontSize_Large);
 xlabel('N [array size] \rightarrow',...
     'FontName',fontName,...
-    'FontSize',fontSize);
+    'FontSize',fontSize_Large);
 
 % Title and Annotations
 % t1 = title(ax1,'Voltage vs Weight under different temperature conditions');
@@ -93,7 +94,8 @@ legend1 = legend(ax1);
 
 set(legend1,...
      'Position',[0.212355212355213 0.778979907264296 0.134169884169884 0.112828438948996],...
-     'Box','off');
+     'Box','off',...
+     'fontSize', fontSize_Large);
 hold on
 
 % Adjust figure
