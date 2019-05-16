@@ -53,8 +53,16 @@ public:
         array[_index(x, y)] = val;
     }
 
+    /// \brief Sets each element in the matrix to 0
+    void zeroValues()
+    {
+        for(size_t i = 0; i < width*width; i++){
+            this->array[i] = 0;
+        }
+    }
+
     /// \brief Sets each element in the matrix to
-    /// a random 32-bit integer between 0 and the 'size' value
+    /// a random 32-bit integer between 0 and 99
     void randomizeValues(const int max = 100)
     {
         srand (static_cast<unsigned int>(time(NULL)));

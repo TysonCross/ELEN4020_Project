@@ -52,8 +52,7 @@ int main (int argc, char* argv[]) {
     const int block = procs/2;
     double t1, t2;
 
-    // Setup matrices
-    Matrix global(N);       // global matrix
+    // Setup validation matrix
     Matrix validation(N);   // validation of transpose
 
     // MPI setup
@@ -68,26 +67,13 @@ int main (int argc, char* argv[]) {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
-    if (rank == 0) {
-        // global.orderedValues();
-        global.randomizeValues();   // <- The main [NxN] matrix in global memory, but only written to rank 0
-        string matrixfile_in = string("matrixFile_") + to_string(N) + ".txt";
-        writeMatrixToFile(matrixfile_in, global);
+    t1 = MPI_Wtime();       // Start timing operation from here
 
-        // read the matrix in for later validation:
-        validation = readMatrixfromFile(matrixfile_in);
-
-        // Shell output
-        cout << N << "x" << N << " matrix written to " <<  matrixfile_in << endl;
-        cout << "Transposing matrix across " << procs << " processors..." << endl;
-        // Timings file headings:
-        output_file << setw(width) << left << N;
-        t1 = MPI_Wtime();       // Start timing operation from here
-    }
-
-    // Create local sub-matrix
-    Matrix local(
-            N / block);         // <- each rank has a local [N/2 x N/2] submatrix, for a quadrant of the main matrix
+    // Create matrices
+    Matrix global(N);                 // global matrix
+    Matrix local( N / block);         // <- each rank has a local [N/2 x N/2] submatrix, for a quadrant of the main matrix
+    global.zeroValues();              // <- not required
+    local.randomizeValues();          // each block generates values
 
     // Create a new MPI type (a 2d array)
     MPI_Datatype MPI_Matrix, MPI_SubMatrix;
@@ -105,7 +91,7 @@ int main (int argc, char* argv[]) {
     int *globalptr = NULL;
     if (rank == 0) globalptr = global.begin();
 
-    // MPI_Scatter the array to all processors with these parameters
+    // Calculate the memory offsets for the array to send/receive from all processors
     int sendcounts[block * block];
     int displaces_send[block * block];
     int displaces_receive[block * block];
@@ -134,7 +120,27 @@ int main (int argc, char* argv[]) {
         displaces_receive[3] = displaces_send[3];
     }
 
-    // Retrieve transposed sub-matrices
+    // get the locally generated values for the matrix and collect into global
+    MPI_Gatherv(local.begin(), N * N / (block * block), MPI_INT,
+                globalptr, sendcounts, displaces_send, MPI_SubMatrix,
+                0, MPI_COMM_WORLD);
+
+    if (rank == 0) {
+        // write to disk
+        string matrixfile_in = string("matrixFile_") + to_string(N) + ".txt";
+        writeMatrixToFile(matrixfile_in, global);
+
+        // read the matrix in for later validation:
+        validation = readMatrixfromFile(matrixfile_in);
+
+        // Shell output
+        cout << N << "x" << N << " matrix written to " <<  matrixfile_in << endl;
+        cout << "Transposing matrix across " << procs << " processors..." << endl;
+        // Timings file headings:
+        output_file << setw(width) << left << N;
+    }
+
+    // Scatter transposed sub-matrices
     MPI_Scatterv(globalptr, sendcounts, displaces_send, MPI_SubMatrix, &(local[0]),
                  N * N / (block * block), MPI_UINT32_T,
                  0, MPI_COMM_WORLD);
@@ -142,7 +148,7 @@ int main (int argc, char* argv[]) {
     //  Process local data
     transposeMatrixBlockOpenMP(local);
 
-    // Send back to rank 0
+    // Gather back to rank 0
     MPI_Gatherv(local.begin(), N * N / (block * block), MPI_INT,
                 globalptr, sendcounts, displaces_receive, MPI_SubMatrix,
                 0, MPI_COMM_WORLD);
@@ -174,7 +180,7 @@ int main (int argc, char* argv[]) {
         output_file << setw(width) << left << setprecision(7) << fixed << time_taken << endl;
 
         // Write transposed Matrix to file
-        string matrixfile_transpose = string("matrixFile_") + to_string(N) + "transpose.txt";
+        string matrixfile_transpose = string("matrixFile_") + to_string(N) + "_transpose.txt";
         writeMatrixToFile(matrixfile_transpose, global);
         cout << "Transposed matrix written to " <<  matrixfile_transpose << endl;
     }
