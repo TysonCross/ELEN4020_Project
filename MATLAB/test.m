@@ -22,4 +22,4 @@ y = y';
 runplot
 
 % Export Plot
-export_fig ('../Report/images/asymptotic.eps',fig1)
+export_fig ('../Report/images/asymptotic.pdf',fig1)
