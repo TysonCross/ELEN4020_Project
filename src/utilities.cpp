@@ -2,7 +2,7 @@
 /// \file
 /// \brief Various output/validation methods for confirming transposition (Implementation)
 
-bool isPowerOfTwo(uint32_t x)
+bool isPowerOfTwo(int x)
 {
     return x!=0 && (x & (x - 1)) == 0;
 }
@@ -53,7 +53,7 @@ Matrix readMatrixfromFile(string fileName)
     inputFile.seekg(0, ios::beg);
 
     int N;
-    uint32_t val;
+    int val;
     inputFile >> N;
     Matrix A(N);
 

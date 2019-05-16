@@ -98,11 +98,11 @@ int main (int argc, char* argv[]) {
     // Create the types (the main 2d MPI_matrix, and the quadrant sub-matrix type, derived from MPI_UINT21_T
     // The ordering is using MPI_ORDER_C, which is row-major on a contiguous block of memory,
     // This matches the Matrix.h memory layout.
-    MPI_Type_create_subarray(2, sizes, subsizes, starts, MPI_ORDER_C, MPI_UINT32_T, &MPI_Matrix);
-    MPI_Type_create_resized(MPI_Matrix, 0, N / block * sizeof(uint32_t), &MPI_SubMatrix);
+    MPI_Type_create_subarray(2, sizes, subsizes, starts, MPI_ORDER_C, MPI_INT, &MPI_Matrix);
+    MPI_Type_create_resized(MPI_Matrix, 0, N / block * sizeof(int), &MPI_SubMatrix);
     MPI_Type_commit(&MPI_SubMatrix);
 
-    uint32_t *globalptr = NULL;
+    int *globalptr = NULL;
     if (rank == 0) globalptr = global.begin();
 
     // MPI_Scatter the array to all processors with these parameters

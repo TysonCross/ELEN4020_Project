@@ -11,8 +11,8 @@
 /// The 2d square matrix is stored as a single contigous array,
 /// with getter and setter methods provided to allow 2d indexing
 class Matrix
-{ 
-    uint32_t* array; 
+{
+    int* array;
     int width;
 
 public:
@@ -22,10 +22,10 @@ public:
     /// \param The array will be [width x width]*32-bits size,
     /// in a contiguous block of memory
     Matrix(int N) : width(N),
-                    array(new uint32_t[N * N]) {}
+                    array(new int[N * N]) {}
 
     /// \brief Returns the memory address of the array
-    uint32_t* begin()
+    int* begin()
     {
         return &array[0];
     }
@@ -48,7 +48,7 @@ public:
     /// \param The row index
     /// \param The column index
     /// \param An unsigned 32-bit integer value inserted into the element
-    void set(int x, int y, uint32_t val)
+    void set(int x, int y, int val)
     {
         array[_index(x, y)] = val;
     }
@@ -86,7 +86,7 @@ public:
 
     /// \brief Array-style indexing
     /// \param The index (or a row-major ordered 2d Matrix as a row vector)
-    uint32_t &operator[](int i) {
+    int &operator[](int i) {
         if( i > width*width ) {
             throw "Index out of bounds";
         }
