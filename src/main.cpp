@@ -75,6 +75,26 @@ int main (int argc, char* argv[]) {
     global.zeroValues();              // <- not required
     local.randomizeValues();          // each block generates values
 
+    // Print local data
+    for (int p=0; p<size; p++) {
+        if (rank == p) {
+            printf("Value Generation: \n Local process on rank %d is:\n", rank);
+            print2d(local);
+        }
+        MPI_Barrier(MPI_COMM_WORLD);
+    }
+
+    // Print global data
+    for (int p=0; p<size; p++)
+    {
+        if (rank == 0)
+        {
+            printf("Global value:");
+            print2d(global);
+        }
+        MPI_Barrier(MPI_COMM_WORLD);
+    }
+
     // Create a new MPI type (a 2d array)
     MPI_Datatype MPI_Matrix, MPI_SubMatrix;
     const int sizes[2] = {N, N};
@@ -152,6 +172,27 @@ int main (int argc, char* argv[]) {
     MPI_Gatherv(local.begin(), N * N / (block * block), MPI_INT,
                 globalptr, sendcounts, displaces_receive, MPI_SubMatrix,
                 0, MPI_COMM_WORLD);
+
+
+    // Print local data
+    for (int p=0; p<size; p++) {
+        if (rank == p) {
+            printf("Value Generation: \n Local process on rank %d is:\n", rank);
+            print2d(local);
+        }
+        MPI_Barrier(MPI_COMM_WORLD);
+    }
+
+    // Print global data
+    for (int p=0; p<size; p++)
+    {
+        if (rank == 0)
+        {
+            printf("Global value:");
+            print2d(global);
+        }
+        MPI_Barrier(MPI_COMM_WORLD);
+    }
 
     // Free the derived type
     MPI_Type_free(&MPI_SubMatrix);
