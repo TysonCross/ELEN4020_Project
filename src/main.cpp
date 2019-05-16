@@ -42,9 +42,9 @@ int main (int argc, char* argv[]) {
     }
 
     //  Output timing file setup
-    const string fileOutName = string("matrixFile_") + to_string(N) + "_timing.txt";
-    ofstream output_file(fileOutName, ios::out | ios::app);
-    if (!output_file.is_open()) { cerr << "Unable to open file:" << fileOutName << endl; return -1;}
+    const string timing_file_name = string("matrixFile_") + to_string(N) + "_timing.txt";
+    ofstream timing_file(timing_file_name, ios::out | ios::app);
+    if (!timing_file.is_open()) { cerr << "Unable to open file:" << timing_file_name << endl; return -1;}
     const auto width = 20;  // File formatting
 
     // MPI number of processors setup
@@ -53,10 +53,10 @@ int main (int argc, char* argv[]) {
     double t1, t2;
 
     // Create matrices
-    Matrix global(N);                 // global matrix
-    global.zeroValues();              // <- not required
-    Matrix local( N / block);         // <- each rank has a local [N/2 x N/2] submatrix, for a quadrant of the main matrix
-    Matrix validation(N);            // validation of transpose
+    Matrix global(N);                   // global matrix
+    global.zeroValues();                // <- not required, but useful (zeros out values)
+    Matrix local( N / block);           // <- each rank has a local [N/2 x N/2] submatrix, for a quadrant of the main matrix
+    Matrix validation(N);               // validation of transpose
 
     // MPI setup
     int rank, size;         // rank of current process and no. of processes
@@ -70,21 +70,14 @@ int main (int argc, char* argv[]) {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
-    t1 = MPI_Wtime();       // Start timing operation from here
+    if (rank == 0) {
+        cout << endl << "Process begin: " << N << "x" << N << " matrix" << endl;
+        cout << "   Generating (" << procs << ") " << N/2 << "x" << N/2 <<  " local sub-matrices" << endl;
+        t1 = MPI_Wtime();       // Start timing operation from here
+    }
 
-    // Print local data
+    // Generate local block values
     local.randomizeValues(rank);          // each block generates values
-//    printf("Value Generation: \n Local process on rank %d is:\n", rank);
-//    print2d(local);
-//    MPI_Barrier(MPI_COMM_WORLD);
-
-//    // Print global data
-//    if (rank == 0)
-//    {
-//        printf("Global value:");
-//        print2d(global);
-//    }
-//    MPI_Barrier(MPI_COMM_WORLD);
 
     // Create a new MPI type (a 2d array)
     MPI_Datatype MPI_Matrix, MPI_SubMatrix;
@@ -136,14 +129,6 @@ int main (int argc, char* argv[]) {
                 globalptr, sendcounts, displaces_send, MPI_SubMatrix,
                 0, MPI_COMM_WORLD);
 
-//    // Print global data
-//    if (rank == 0)
-//    {
-//        printf("Global value before transposing:");
-//        print2d(global);
-//    }
-//    MPI_Barrier(MPI_COMM_WORLD);
-
     if (rank == 0) {
         // write to disk
         string matrixfile_in = string("matrixFile_") + to_string(N) + ".txt";
@@ -153,10 +138,10 @@ int main (int argc, char* argv[]) {
         validation = readMatrixfromFile(matrixfile_in);
 
         // Shell output
-        cout << N << "x" << N << " matrix written to " <<  matrixfile_in << endl;
+        cout << "   Global matrix written to " <<  matrixfile_in << endl;
         cout << "   Transposing matrix across " << procs << " processors..." << endl;
         // Timings file headings:
-        output_file << setw(width) << left << N;
+        timing_file << setw(width) << left << N;
     }
 
     // Scatter transposed sub-matrices
@@ -167,25 +152,10 @@ int main (int argc, char* argv[]) {
     //  Process local data
     transposeMatrixBlockOpenMP(local);
 
-//    MPI_Barrier(MPI_COMM_WORLD);
-//    // Print local data
-//    printf("After transpose\n Local process on rank %d is:\n", rank);
-//    print2d(local);
-//    MPI_Barrier(MPI_COMM_WORLD);
-
     // Gather back to rank 0
     MPI_Gatherv(local.begin(), N * N / (block * block), MPI_INT,
                 globalptr, sendcounts, displaces_receive, MPI_SubMatrix,
                 0, MPI_COMM_WORLD);
-
-
-//    // Print global data
-//    if (rank == 0)
-//    {
-//        printf("Global value after transposing:");
-//        print2d(global);
-//    }
-//    MPI_Barrier(MPI_COMM_WORLD);
 
     // Free the derived type
     MPI_Type_free(&MPI_SubMatrix);
@@ -195,33 +165,36 @@ int main (int argc, char* argv[]) {
         t2 = MPI_Wtime();
         auto time_taken = t2 - t1;     // record the time delta
 
-        // Transposition validation with known, local method
+        // Transposition validation matrix with guaranteed, local method
         transposeMatrixSerial(validation);
         try{
             if(!matricesAreEqual(global, validation)){
                 throw N;
             } else {
-                cout << "   Transposition verified!" << endl;
-                cout << "   Transposition completed. Operation took " << time_taken << " sec" << endl;
+                cout << "   Operation verified!" << endl;
+                cout << "   Transposition completed in " << time_taken << " sec" << endl;
             }
         } catch (int i){
             cerr << "Error: Matrix of size " << i << " was not correctly transposed. Aborting." << endl;
-            output_file.close();
-            remove(fileOutName.c_str());
+            timing_file.close();
+            remove(timing_file_name.c_str());
             MPI_Abort(MPI_COMM_WORLD, 1);
             return i;
         }
 
-        output_file << setw(width) << left << setprecision(7) << fixed << time_taken << endl;
+        timing_file << setw(width) << left << setprecision(7) << fixed << time_taken << endl;
 
         // Write transposed Matrix to file
         string matrixfile_transpose = string("matrixFile_") + to_string(N) + "_transpose.txt";
         writeMatrixToFile(matrixfile_transpose, global);
         cout << "   Transposed matrix written to " <<  matrixfile_transpose << endl;
+        cout << "   Timing appended to " <<  timing_file_name << endl;
+        cout << "Process complete." << endl << endl;
+
     }
 
     // clean up
-//    output_file.close();
+    timing_file.close();
     MPI_Finalize();
     return 0;
 }
