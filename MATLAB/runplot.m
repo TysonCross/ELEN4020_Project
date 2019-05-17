@@ -33,7 +33,7 @@ y_lim = [0 1e3];
 ax1 = axes();
 
 p1 = loglog(x,y,...
-    'DisplayName','Transpose (4procs)',...
+    'DisplayName','Transpose + IO (4procs)',...
     'Color',[cmap(1,:) line_transparency],...
     'MarkerFaceColor',cmap(1,:),...
 	'LineStyle','-',...
@@ -44,21 +44,20 @@ p1 = loglog(x,y,...
 hold on
 
 
-f_n2 = @(n) n.^2;
-
-vec = logspace(0,20,length(y));
-
-% p_f2 = loglog(ax1,vec,f_n2(vec),...
+% % f_n2 = @(n) n.^2;
+% f = logspace(y(8),y(end),length(y));
+% vec = logspace(x(8),x(end),length(x));
+% 
+% p_f2 = loglog(ax1,f,...
 %     'DisplayName','N^2',...
 %     'Color',cmap(1,:),...
 %     'MarkerFaceColor',cmap(2,:),...
 % 	'LineStyle',':',...
 % 	'LineWidth',line_thick);
 % hold on
-
-
+% 
 % plotObjects = get(ax1, 'Children');
-% offset = 2200;
+% offset =0;
 % plotObjects(1).YData = plotObjects(1).YData - offset;
 
 % Axes and labels
@@ -104,6 +103,6 @@ ax1.Position = FillAxesPos(ax1,0.99);
 % ax3.Position = ax1.Position;
 hold off;
 
-
-clear ax1 ax2 cmap fontName fontSize legend1 len line_thin line_thick marker_size
-clear marker_spacing offset p_hi p_lo p_nominal phi r1 r2 r3 scr scr_ratio
+% 
+% clear ax1 ax2 cmap fontName fontSize legend1 len line_thin line_thick marker_size
+% clear marker_spacing offset p_hi p_lo p_nominal phi r1 r2 r3 scr scr_ratio
