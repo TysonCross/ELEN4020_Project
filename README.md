@@ -7,23 +7,26 @@
 
 Source repository: <i>https://github.com/TysonCross/ELEN4020_Project.git<i>
 ## Build and Run Instructions
-The code requires the OpenMP libraries, and the g++ compiler to be installed. We suggest using [CMake](https://cmake.org/) to build the executable. Download the [latest release](https://cmake.org/download/), or install with a package manager.
+The code requires the OpenMP libraries, and the g++ compiler to be installed, along with MPICH 3
 
-Once CMake is installed, run the following from the location where this git repo was cloned to:
-<pre><code>$ mkdir build
-$ cd build
-$ cmake ..
-$ make
-</code></pre>
+Transfer the **src/** folder to the Jaguar cluster (dica01) and then compile the code:
 
-// Instructions HERE
+<pre><code>$ mpicxx src/main.cpp src/transpose.cpp src/Matrix.h src/utilities.cpp -lstdc++ -o transpose</code></pre>
+
 
 ### Additional Notes
-Please make sure that your ENV variable OMP\_NUM\_THREADS is set to a sensible value (we suggest 8 for a 4-core machine with hyperthreading). You can check the value with
-<pre><code>$ echo $OMP\_NUM\_THREADS</code></pre>
-and set it with
-<pre><code>$ export $OMP\_NUM\_THREADS=8</code></pre>
+The code and batch files to compile and run the code are already installed in swbsutg08@dica01, using the default administrator provided password for the account.
 
-<br>
-<i>Addtional commandline options:<i>
+simply run 
+<pre><code>$ run_transpose [N] </code></pre>
+(N must be a power of 2 greater than or equal to 4) <br>
+
+You can also run a suite of sizes with 
+
+<pre><code>$ run_transpose_short</code></pre>
+
+or run a large number of tests, several times with 
+
+<pre><code>$ run_transpose_long</code></pre>
+
 
